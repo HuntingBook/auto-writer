@@ -1,0 +1,15 @@
+node_modules
+dist
+build
+.env
+.secrets
+.secrets/*
+.DS_Store
+__pycache__
+.venv
+.pytest_cache
+.mypy_cache
+*.log
+artifacts
+db_data
+redis_data
