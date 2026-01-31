@@ -11,32 +11,32 @@ Auto Writer 是一个基于 DeepSeek 的多智能体协作网文生成系统，�
 - 实时日志：SSE 推送过程事件，支持暂停 / 继续 / 取消
 - 开箱即用：未配置 DeepSeek Key 也可运行（自动进入演示模式）；配置 Key 后自动使用 DeepSeek
 
-## 服务说明（Docker Compose）
+## 服务说明
 
 本项目默认通过 Docker Compose 启动 5 个服务：
 
-- db：PostgreSQL + pgvector（本机端口 5413 → 容器 5432），持久化卷 `db_data`
-- redis：任务状态与临时数据（无对外端口），持久化卷 `redis_data`
-- backend：FastAPI API 服务（本机端口 8413 → 容器 8000）
-- worker：Celery Worker（执行生成任务与编排），与 backend 共用同一镜像
-- frontend：静态站点（nginx），本机端口 3413 → 容器 80
+- **数据库 (db)**：PostgreSQL + pgvector（本机端口 5413 → 容器 5432），持久化卷 `db_data`
+- **缓存 (redis)**：任务状态与临时数据（无对外端口），持久化卷 `redis_data`
+- **后端 (backend)**：FastAPI API 服务（本机端口 8413 → 容器 8000）
+- **工作节点 (worker)**：Celery Worker（执行生成任务与编排），与 backend 共用同一镜像
+- **前端 (frontend)**：静态站点（nginx），本机端口 3413 → 容器 80
 
 数据与产物：
-- artifacts：生成结果与中间产物目录（容器内 `/data/artifacts`），持久化卷 `artifacts`
+- **产物目录 (artifacts)**：生成结果与中间产物目录（容器内 `/data/artifacts`），持久化卷 `artifacts`
 
 ## 快速开始（Docker）
 
 ### 1) 前置要求
 
-- Docker Desktop（或 Docker Engine）
+- Docker 桌面版（或 Docker 引擎）
 - Docker Compose
 
 ### 2) 配置（可选）
 
-你可以不配置 Key 直接启动（演示模式），也可以通过环境变量提供 DeepSeek Key。
+你可以不配置密钥直接启动（演示模式），也可以通过环境变量提供 DeepSeek 密钥。
 
 - 环境变量方式（推荐）：`DEEPSEEK_API_KEY`
-- 文件方式（可选）：`DEEPSEEK_API_KEY_FILE`（指向 Key 文件路径；容器内也会尝试默认路径）
+- 文件方式（可选）：`DEEPSEEK_API_KEY_FILE`（指向密钥文件路径；容器内也会尝试默认路径）
 
 示例（不把密钥写进仓库）：
 - 复制 `.env.example` 为 `.env`，在 `.env` 中填写 `DEEPSEEK_API_KEY=...`
@@ -55,23 +55,23 @@ docker compose up -d --build
 - 仅停止：`docker compose down`
 - 清空本地数据（会删除数据库/redis/产物）：`docker compose down -v`
 
-## 桌面软件（安装与启动）
+## 桌面开发模式 (桌面应用)
 
-本项目默认是 Web 应用。你可以将 Web 前端“安装”为桌面应用（PWA/浏览器应用壳），获得更接近桌面软件的使用体验。
+如果你希望以桌面软件形式运行前端（基于 Electron），请确保本地已安装 Node.js。
 
-### Windows / macOS / Linux（Chrome 或 Edge）
+1.  **启动后端服务**（保持 Docker 运行）：
+    ```bash
+    docker compose up -d db redis backend worker
+    ```
 
-1. 确保服务已启动，并在浏览器打开：http://localhost:3413
-2. 在地址栏右侧点击“安装应用 / Install”按钮（或菜单：应用 / Apps → 安装此站点为应用）
-3. 安装完成后从桌面/开始菜单启动
+2.  **启动桌面应用**：
+    ```bash
+    cd frontend
+    npm install
+    npm run electron
+    ```
+    这将同时启动 Vite 开发服务器和 Electron 窗口。
 
-说明：
-- 桌面应用只是“前端壳”，后端服务仍需要保持运行（Docker Compose 不要关闭）
-
-### macOS（Safari）
-
-1. 打开 http://localhost:3413
-2. 选择“文件 → 添加到程序坞”
 
 ## 使用提示（上手路径）
 
@@ -88,18 +88,15 @@ docker compose up -d --build
 
 - 生成步骤提示“请先生成大纲/章节编排”：需要先按工作流完成上游步骤
 - 日志显示“未连接”：通常是 SSE 连接尚未建立或网络代理影响，稍等或点击“刷新”
-- 未配置 DeepSeek Key：系统会自动进入演示模式；配置后会自动切回 DeepSeek
+- 未配置 DeepSeek 密钥：系统会自动进入演示模式；配置后会自动切回 DeepSeek
 
 ## 文档
 
 项目文档在 `docs/` 目录：
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [design.md](docs/design.md)
-- [development.md](docs/development.md)
-- [testing.md](docs/testing.md)
-- [user_manual.md](docs/user_manual.md)
-- [walkthrough.md](docs/walkthrough.md)
+- [架构文档 (ARCHITECTURE.md)](docs/ARCHITECTURE.md)
+- [设计文档 (design.md)](docs/design.md)
+- [开发文档 (development.md)](docs/development.md)
+- [测试文档 (testing.md)](docs/testing.md)
+- [用户手册 (user_manual.md)](docs/user_manual.md)
+- [演示流程 (walkthrough.md)](docs/walkthrough.md)
 
-## 许可证
-
-MIT License

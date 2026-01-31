@@ -13,6 +13,20 @@
    - 提示：背景设定越详细，AI 生成的逻辑越严密。
 6. 点击“确认创建”。
 
+## 3. 桌面客户端 (Desktop Client)
+
+Auto Writer 提供了基于 Electron 的桌面客户端版本。
+
+### 安装与启动
+1. 确保你的电脑已安装 **Node.js** 环境。
+2. 保持 Docker 后端服务运行。
+3. 在终端进入 `frontend` 目录，执行：
+   ```bash
+   npm install
+   npm run electron
+   ```
+4. 系统将启动一个独立的桌面应用窗口，获得原生软件般的体验。
+
 ### 第二步：配置模型
 1. 进入小说详情页。
 2. 点击右上角“DeepSeek”。
