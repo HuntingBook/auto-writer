@@ -1,4 +1,3 @@
-import os
 import asyncio
 import uuid
 from pathlib import Path
@@ -37,15 +36,10 @@ async def set_deepseek_api_key(*, novel_id: uuid.UUID, api_key: str, ttl_seconds
 
 
 async def get_deepseek_api_key(*, novel_id: uuid.UUID) -> str | None:
-  env_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
-  if env_key:
-    return env_key
+  if settings.deepseek_api_key:
+    return settings.deepseek_api_key
 
-  key_file = os.environ.get("DEEPSEEK_API_KEY_FILE", "").strip()
-  candidates: list[str] = []
-  if key_file:
-    candidates.append(key_file)
-  candidates.extend(["/data/secrets/deepseek_api_key", "/app/.secrets/deepseek_api_key"])
+  candidates = ["/data/secrets/deepseek_api_key", "/app/.secrets/deepseek_api_key"]
   for p in candidates:
     try:
       t = Path(p).read_text(encoding="utf-8").strip()
