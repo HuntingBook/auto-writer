@@ -2,12 +2,13 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from "vite-tsconfig-paths";
 
-// https://vite.dev/config/
+const apiTarget = process.env.AUTO_WRITER_API_BASE_URL || 'http://localhost:8413'
+
 export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8413',
+        target: apiTarget,
         changeOrigin: true,
       },
     },

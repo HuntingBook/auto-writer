@@ -1,3 +1,9 @@
+declare global {
+  interface Window {
+    AUTO_WRITER_API_BASE_URL?: string
+  }
+}
+
 export class ApiError extends Error {
   status: number
   payload: unknown
@@ -19,8 +25,14 @@ async function parseJsonSafe(res: Response): Promise<unknown> {
   }
 }
 
+function getApiBase(): string {
+  return window.AUTO_WRITER_API_BASE_URL || ''
+}
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, {
+  const base = getApiBase()
+  const url = base ? `${base}${path}` : path
+  const res = await fetch(url, {
     ...init,
     headers: {
       'Content-Type': 'application/json',

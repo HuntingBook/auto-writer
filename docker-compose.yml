@@ -1,3 +1,13 @@
+x-backend-env: &backend-env
+  AUTO_WRITER_ENV: ${AUTO_WRITER_ENV:-prod}
+  AUTO_WRITER_SECRET_KEY_FILE: ${AUTO_WRITER_SECRET_KEY_FILE:-}
+  AUTO_WRITER_DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/autowriter
+  AUTO_WRITER_REDIS_URL: redis://redis:6379/0
+  AUTO_WRITER_DEEPSEEK_API_KEY_FILE: ${AUTO_WRITER_DEEPSEEK_API_KEY_FILE:-}
+  AUTO_WRITER_DEEPSEEK_BASE_URL: ${AUTO_WRITER_DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+  AUTO_WRITER_DEEPSEEK_MODEL: ${AUTO_WRITER_DEEPSEEK_MODEL:-deepseek-chat}
+  AUTO_WRITER_ARTIFACTS_DIR: /data/artifacts
+
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -8,7 +18,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "5413:5432"
+      - "${AUTO_WRITER_DB_PORT:-5413}:5432"
 
   redis:
     image: redis:7-alpine
@@ -19,51 +29,42 @@ services:
   backend:
     build: ./backend
     environment:
-      APP_ENV: prod
-      APP_SECRET_KEY: change-me-in-prod
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/autowriter
-      REDIS_URL: redis://redis:6379/0
-      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      DEEPSEEK_API_KEY_FILE: ${DEEPSEEK_API_KEY_FILE:-}
-      DEEPSEEK_BASE_URL: https://api.deepseek.com
-      DEEPSEEK_MODEL: deepseek-chat
-      ARTIFACTS_DIR: /data/artifacts
+      <<: *backend-env
+      AUTO_WRITER_API_PORT: ${AUTO_WRITER_API_PORT:-8000}
     depends_on:
       - db
       - redis
     volumes:
       - artifacts:/data/artifacts
+      - secrets:/data/secrets:ro
     ports:
-      - "8413:8000"
+      - "${AUTO_WRITER_API_HOST_PORT:-8413}:8000"
 
   worker:
     build: ./backend
     environment:
-      APP_ENV: prod
-      APP_SECRET_KEY: change-me-in-prod
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/autowriter
-      REDIS_URL: redis://redis:6379/0
-      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      DEEPSEEK_API_KEY_FILE: ${DEEPSEEK_API_KEY_FILE:-}
-      DEEPSEEK_BASE_URL: https://api.deepseek.com
-      DEEPSEEK_MODEL: deepseek-chat
-      ARTIFACTS_DIR: /data/artifacts
-      SKIP_MIGRATIONS: "1"
+      <<: *backend-env
+      AUTO_WRITER_SKIP_MIGRATIONS: "1"
     depends_on:
       - db
       - redis
     volumes:
       - artifacts:/data/artifacts
+      - secrets:/data/secrets:ro
     command: ["celery", "-A", "app.worker.celery_app", "worker", "-l", "info"]
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        AUTO_WRITER_API_BASE_URL: ${AUTO_WRITER_API_BASE_URL:-}
     depends_on:
       - backend
     ports:
-      - "3413:80"
+      - "${AUTO_WRITER_FRONTEND_PORT:-3413}:80"
 
 volumes:
   db_data:
   redis_data:
   artifacts:
+  secrets:
