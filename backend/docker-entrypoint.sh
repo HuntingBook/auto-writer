@@ -4,7 +4,7 @@ set -e
 cd /app
 export PYTHONPATH=/app
 
-if [ "${SKIP_MIGRATIONS:-0}" != "1" ]; then
+if [ "${AUTO_WRITER_SKIP_MIGRATIONS:-0}" != "1" ]; then
   try=0
   until alembic upgrade head; do
     try=$((try+1))

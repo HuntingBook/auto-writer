@@ -16,18 +16,19 @@ services:
     volumes:
       - redis_data:/data
 
-  backend:
+  backend: &backend-common
     build: ./backend
     environment:
-      APP_ENV: prod
-      APP_SECRET_KEY: change-me-in-prod
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/autowriter
-      REDIS_URL: redis://redis:6379/0
-      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      DEEPSEEK_API_KEY_FILE: ${DEEPSEEK_API_KEY_FILE:-}
-      DEEPSEEK_BASE_URL: https://api.deepseek.com
-      DEEPSEEK_MODEL: deepseek-chat
-      ARTIFACTS_DIR: /data/artifacts
+      AUTO_WRITER_APP_ENV: ${AUTO_WRITER_APP_ENV:-prod}
+      AUTO_WRITER_SECRET_KEY: ${AUTO_WRITER_SECRET_KEY:-}
+      AUTO_WRITER_SECRET_KEY_FILE: ${AUTO_WRITER_SECRET_KEY_FILE:-}
+      AUTO_WRITER_DATABASE_URL: ${AUTO_WRITER_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@db:5432/autowriter}
+      AUTO_WRITER_REDIS_URL: ${AUTO_WRITER_REDIS_URL:-redis://redis:6379/0}
+      AUTO_WRITER_DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      AUTO_WRITER_DEEPSEEK_API_KEY_FILE: ${DEEPSEEK_API_KEY_FILE:-}
+      AUTO_WRITER_DEEPSEEK_BASE_URL: ${AUTO_WRITER_DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      AUTO_WRITER_DEEPSEEK_MODEL: ${AUTO_WRITER_DEEPSEEK_MODEL:-deepseek-chat}
+      AUTO_WRITER_ARTIFACTS_DIR: ${AUTO_WRITER_ARTIFACTS_DIR:-/data/artifacts}
     depends_on:
       - db
       - redis
@@ -37,23 +38,20 @@ services:
       - "8413:8000"
 
   worker:
-    build: ./backend
+    <<: *backend-common
     environment:
-      APP_ENV: prod
-      APP_SECRET_KEY: change-me-in-prod
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/autowriter
-      REDIS_URL: redis://redis:6379/0
-      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      DEEPSEEK_API_KEY_FILE: ${DEEPSEEK_API_KEY_FILE:-}
-      DEEPSEEK_BASE_URL: https://api.deepseek.com
-      DEEPSEEK_MODEL: deepseek-chat
-      ARTIFACTS_DIR: /data/artifacts
-      SKIP_MIGRATIONS: "1"
-    depends_on:
-      - db
-      - redis
-    volumes:
-      - artifacts:/data/artifacts
+      AUTO_WRITER_APP_ENV: ${AUTO_WRITER_APP_ENV:-prod}
+      AUTO_WRITER_SECRET_KEY: ${AUTO_WRITER_SECRET_KEY:-}
+      AUTO_WRITER_SECRET_KEY_FILE: ${AUTO_WRITER_SECRET_KEY_FILE:-}
+      AUTO_WRITER_DATABASE_URL: ${AUTO_WRITER_DATABASE_URL:-postgresql+asyncpg://postgres:postgres@db:5432/autowriter}
+      AUTO_WRITER_REDIS_URL: ${AUTO_WRITER_REDIS_URL:-redis://redis:6379/0}
+      AUTO_WRITER_DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      AUTO_WRITER_DEEPSEEK_API_KEY_FILE: ${DEEPSEEK_API_KEY_FILE:-}
+      AUTO_WRITER_DEEPSEEK_BASE_URL: ${AUTO_WRITER_DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      AUTO_WRITER_DEEPSEEK_MODEL: ${AUTO_WRITER_DEEPSEEK_MODEL:-deepseek-chat}
+      AUTO_WRITER_ARTIFACTS_DIR: ${AUTO_WRITER_ARTIFACTS_DIR:-/data/artifacts}
+      AUTO_WRITER_SKIP_MIGRATIONS: "1"
+    ports: []
     command: ["celery", "-A", "app.worker.celery_app", "worker", "-l", "info"]
 
   frontend:
