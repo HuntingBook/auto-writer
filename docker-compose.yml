@@ -1,3 +1,17 @@
+x-backend-env: &backend-env
+  AUTO_WRITER_APP_ENV: prod
+  AUTO_WRITER_SECRET_KEY: ${AUTO_WRITER_SECRET_KEY:-change-me-in-prod}
+  AUTO_WRITER_SECRET_KEY_FILE: ${AUTO_WRITER_SECRET_KEY_FILE:-}
+  AUTO_WRITER_DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/autowriter
+  AUTO_WRITER_DATABASE_URL_FILE: ${AUTO_WRITER_DATABASE_URL_FILE:-}
+  AUTO_WRITER_REDIS_URL: redis://redis:6379/0
+  AUTO_WRITER_REDIS_URL_FILE: ${AUTO_WRITER_REDIS_URL_FILE:-}
+  AUTO_WRITER_DEEPSEEK_API_KEY: ${AUTO_WRITER_DEEPSEEK_API_KEY:-}
+  AUTO_WRITER_DEEPSEEK_API_KEY_FILE: ${AUTO_WRITER_DEEPSEEK_API_KEY_FILE:-}
+  AUTO_WRITER_DEEPSEEK_BASE_URL: ${AUTO_WRITER_DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+  AUTO_WRITER_DEEPSEEK_MODEL: ${AUTO_WRITER_DEEPSEEK_MODEL:-deepseek-chat}
+  AUTO_WRITER_ARTIFACTS_DIR: /data/artifacts
+
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -19,15 +33,7 @@ services:
   backend:
     build: ./backend
     environment:
-      APP_ENV: prod
-      APP_SECRET_KEY: change-me-in-prod
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/autowriter
-      REDIS_URL: redis://redis:6379/0
-      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      DEEPSEEK_API_KEY_FILE: ${DEEPSEEK_API_KEY_FILE:-}
-      DEEPSEEK_BASE_URL: https://api.deepseek.com
-      DEEPSEEK_MODEL: deepseek-chat
-      ARTIFACTS_DIR: /data/artifacts
+      <<: *backend-env
     depends_on:
       - db
       - redis
@@ -39,15 +45,7 @@ services:
   worker:
     build: ./backend
     environment:
-      APP_ENV: prod
-      APP_SECRET_KEY: change-me-in-prod
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/autowriter
-      REDIS_URL: redis://redis:6379/0
-      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      DEEPSEEK_API_KEY_FILE: ${DEEPSEEK_API_KEY_FILE:-}
-      DEEPSEEK_BASE_URL: https://api.deepseek.com
-      DEEPSEEK_MODEL: deepseek-chat
-      ARTIFACTS_DIR: /data/artifacts
+      <<: *backend-env
       SKIP_MIGRATIONS: "1"
     depends_on:
       - db
