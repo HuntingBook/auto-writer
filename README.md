@@ -1,6 +1,6 @@
 # Auto Writer（智能网文生成系统）
 
-Auto Writer 是一个基于 DeepSeek 的多智能体协作网文生成系统，覆盖“设定 → 大纲 → 书名 → 分卷分章编排 → 正文”的完整流程，并提供实时日志与可控的异步任务执行。
+Auto Writer 是一个基于 DeepSeek 的多智能体协作网文生成系统，覆盖"设定 → 大纲 → 书名 → 分卷分章编排 → 正文"的完整流程，并提供实时日志与可控的异步任务执行。
 
 ## 核心特性
 
@@ -9,7 +9,7 @@ Auto Writer 是一个基于 DeepSeek 的多智能体协作网文生成系统，�
 - RAG 知识库：可录入文本或抓取 URL，生成时检索引用，减少设定跑偏
 - 小说圣经：自动维护人物表、时间线、禁忌清单、伏笔回收清单
 - 实时日志：SSE 推送过程事件，支持暂停 / 继续 / 取消
-- 开箱即用：需配置DeepSeek Key
+- 开箱即用：需配置 DeepSeek Key
 
 ## 服务说明
 
@@ -34,14 +34,38 @@ Auto Writer 是一个基于 DeepSeek 的多智能体协作网文生成系统，�
 
 ### 2) 配置（必须配置）
 
-你需配置环境变量提供 DeepSeek 密钥。
+复制 `.env.example` 为 `.env`：
 
-- 环境变量方式（推荐）：`DEEPSEEK_API_KEY`
-- 文件方式（可选）：`DEEPSEEK_API_KEY_FILE`（指向密钥文件路径；容器内也会尝试默认路径）
+```bash
+cp .env.example .env
+```
 
-示例（不把密钥写进仓库）：
+然后编辑 `.env` 配置以下变量：
 
-- 复制 `.env.example` 为 `.env`，在 `.env` 中填写 `DEEPSEEK_API_KEY=...`
+#### 必需配置
+
+| 变量名 | 说明 | 示例 |
+|--------|------|------|
+| `DEEPSEEK_API_KEY` | DeepSeek API 密钥 | `sk-xxxxxxxx` |
+| `AUTO_WRITER_SECRET_KEY` 或 `AUTO_WRITER_SECRET_KEY_FILE` | 应用安全密钥（用于会话加密等） | `your-secret-key` 或 `/run/secrets/app_key` |
+
+#### 可选配置
+
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| `AUTO_WRITER_API_BASE_URL` | 前端 API 代理目标地址 | `http://localhost:8413` |
+| `AUTO_WRITER_APP_ENV` | 应用环境 | `prod` |
+| `AUTO_WRITER_DATABASE_URL` | PostgreSQL 连接字符串 | `postgresql+asyncpg://postgres:postgres@db:5432/autowriter` |
+| `AUTO_WRITER_REDIS_URL` | Redis 连接字符串 | `redis://redis:6379/0` |
+| `AUTO_WRITER_DEEPSEEK_BASE_URL` | DeepSeek API 基础地址 | `https://api.deepseek.com` |
+| `AUTO_WRITER_DEEPSEEK_MODEL` | DeepSeek 模型名称 | `deepseek-chat` |
+| `AUTO_WRITER_ARTIFACTS_DIR` | 产物存储目录 | `/data/artifacts` |
+| `DEEPSEEK_API_KEY_FILE` | DeepSeek 密钥文件路径 | - |
+
+**密钥配置方式（二选一）：**
+
+- **环境变量方式**：直接设置 `AUTO_WRITER_SECRET_KEY=your-key`
+- **文件方式**：设置 `AUTO_WRITER_SECRET_KEY_FILE=/path/to/secret`，将密钥写入指定文件（Docker Secret 兼容）
 
 ### 3) 启动
 
@@ -93,8 +117,8 @@ docker compose up -d --build
 
 ## 常见问题
 
-- 生成步骤提示“请先生成大纲/章节编排”：需要先按工作流完成上游步骤
-- 日志显示“未连接”：通常是 SSE 连接尚未建立或网络代理影响，稍等或点击“刷新”
+- 生成步骤提示"请先生成大纲/章节编排"：需要先按工作流完成上游步骤
+- 日志显示"未连接"：通常是 SSE 连接尚未建立或网络代理影响，稍等或点击"刷新"
 - 未配置 DeepSeek 密钥：系统会自动进入演示模式；配置后会自动切回 DeepSeek
 
 ## 文档
