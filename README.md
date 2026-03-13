@@ -15,15 +15,16 @@ Auto Writer 是一个基于 DeepSeek 的多智能体协作网文生成系统，�
 
 本项目默认通过 Docker Compose 启动 5 个服务：
 
-- **数据库 (db)**：PostgreSQL + pgvector（本机端口 5413 → 容器 5432），持久化卷 `db_data`
+- **数据库 (db)**：PostgreSQL + pgvector（本机端口可通过 `AUTO_WRITER_DB_PORT` 配置，默认 5413 → 容器 5432），持久化卷 `db_data`
 - **缓存 (redis)**：任务状态与临时数据（无对外端口），持久化卷 `redis_data`
-- **后端 (backend)**：FastAPI API 服务（本机端口 8413 → 容器 8000）
+- **后端 (backend)**：FastAPI API 服务（本机端口可通过 `AUTO_WRITER_API_HOST_PORT` 配置，默认 8413 → 容器 8000）
 - **工作节点 (worker)**：Celery Worker（执行生成任务与编排），与 backend 共用同一镜像
-- **前端 (frontend)**：静态站点（nginx），本机端口 3413 → 容器 80
+- **前端 (frontend)**：静态站点（nginx），本机端口可通过 `AUTO_WRITER_FRONTEND_PORT` 配置，默认 3413 → 容器 80
 
 数据与产物：
 
 - **产物目录 (artifacts)**：生成结果与中间产物目录（容器内 `/data/artifacts`），持久化卷 `artifacts`
+- **密钥目录 (secrets)**：存放密钥文件（容器内 `/data/secrets`），持久化卷 `secrets`
 
 ## 快速开始（Docker）
 
@@ -34,14 +35,41 @@ Auto Writer 是一个基于 DeepSeek 的多智能体协作网文生成系统，�
 
 ### 2) 配置（必须配置）
 
-你需配置环境变量提供 DeepSeek 密钥。
+复制 `.env.example` 为 `.env`，按需修改：
 
-- 环境变量方式（推荐）：`DEEPSEEK_API_KEY`
-- 文件方式（可选）：`DEEPSEEK_API_KEY_FILE`（指向密钥文件路径；容器内也会尝试默认路径）
+```bash
+cp .env.example .env
+```
 
-示例（不把密钥写进仓库）：
+主要配置项（均以 `AUTO_WRITER_` 为前缀）：
 
-- 复制 `.env.example` 为 `.env`，在 `.env` 中填写 `DEEPSEEK_API_KEY=...`
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `AUTO_WRITER_ENV` | 运行环境 | `prod` |
+| `AUTO_WRITER_SECRET_KEY_FILE` | 应用密钥文件路径 | - |
+| `AUTO_WRITER_DATABASE_URL` | 数据库连接串 | 内置默认 |
+| `AUTO_WRITER_REDIS_URL` | Redis 连接串 | 内置默认 |
+| `AUTO_WRITER_DEEPSEEK_API_KEY_FILE` | DeepSeek API 密钥文件路径 | - |
+| `AUTO_WRITER_DEEPSEEK_BASE_URL` | DeepSeek API 地址 | `https://api.deepseek.com` |
+| `AUTO_WRITER_DEEPSEEK_MODEL` | DeepSeek 模型 | `deepseek-chat` |
+| `AUTO_WRITER_DB_PORT` | 数据库宿主机端口 | `5413` |
+| `AUTO_WRITER_API_HOST_PORT` | 后端服务宿主机端口 | `8413` |
+| `AUTO_WRITER_FRONTEND_PORT` | 前端服务宿主机端口 | `3413` |
+
+**密钥配置方式**（推荐文件方式，更安全）：
+
+```bash
+# 创建密钥文件
+mkdir -p secrets
+echo "your-deepseek-api-key" > secrets/deepseek_api_key
+echo "your-app-secret-key" > secrets/secret_key
+
+# .env 中配置文件路径
+AUTO_WRITER_DEEPSEEK_API_KEY_FILE=/data/secrets/deepseek_api_key
+AUTO_WRITER_SECRET_KEY_FILE=/data/secrets/secret_key
+```
+
+**注意**：密钥文件会被挂载到容器内 `/data/secrets` 目录。
 
 ### 3) 启动
 
@@ -51,7 +79,7 @@ docker compose up -d --build
 
 启动后访问：
 
-- Web 前端：http://localhost:3413
+- Web 前端：http://localhost:${AUTO_WRITER_FRONTEND_PORT:-3413}（默认 3413）
 
 ### 4) 关闭与清理
 

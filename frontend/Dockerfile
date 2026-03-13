@@ -2,6 +2,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+ARG AUTO_WRITER_API_BASE_URL=""
+ENV AUTO_WRITER_API_BASE_URL=$AUTO_WRITER_API_BASE_URL
+
 COPY package*.json ./
 RUN npm config set registry https://registry.npmmirror.com
 RUN npm install

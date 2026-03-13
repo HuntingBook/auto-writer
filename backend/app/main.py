@@ -10,7 +10,7 @@ from app.core.config import settings
 from app.core.logging import setup_logging
 
 
-setup_logging(settings.app_env)
+setup_logging(settings.env)
 logger = logging.getLogger("api")
 
 

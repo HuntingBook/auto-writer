@@ -1,7 +1,5 @@
-import os
 import asyncio
 import uuid
-from pathlib import Path
 
 import redis.asyncio as redis
 
@@ -37,22 +35,9 @@ async def set_deepseek_api_key(*, novel_id: uuid.UUID, api_key: str, ttl_seconds
 
 
 async def get_deepseek_api_key(*, novel_id: uuid.UUID) -> str | None:
-  env_key = os.environ.get("DEEPSEEK_API_KEY", "").strip()
-  if env_key:
-    return env_key
-
-  key_file = os.environ.get("DEEPSEEK_API_KEY_FILE", "").strip()
-  candidates: list[str] = []
-  if key_file:
-    candidates.append(key_file)
-  candidates.extend(["/data/secrets/deepseek_api_key", "/app/.secrets/deepseek_api_key"])
-  for p in candidates:
-    try:
-      t = Path(p).read_text(encoding="utf-8").strip()
-      if t:
-        return t
-    except Exception:
-      pass
+  global_key = settings.effective_deepseek_api_key
+  if global_key:
+    return global_key
 
   raw = await _redis_client().get(_key(novel_id))
   if raw is None:
